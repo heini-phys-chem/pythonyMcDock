@@ -5,15 +5,15 @@ from openbabel import openbabel as ob
 
 
 def get_options(argv):
-    '''
-    Read in cmd line arguments
-    ligand: ligand geometry (sdf)
-    target: target geometry (sdf)
-    forceField: force field to be used
-    trajectories: how many trajectorues (MC runs) per conformer
-    steps: number of MC steps
-    temperature: temperature for acceptance test
-    '''
+   '''
+   Read in cmd line arguments
+   ligand: ligand geometry (sdf)
+   target: target geometry (sdf)
+   forceField: force field to be used
+   trajectories: how many trajectorues (MC runs) per conformer
+   steps: number of MC steps
+   temperature: temperature for acceptance test
+   '''
    opts, args = getopt.getopt(argv, "hl:t:f:j:s:u:", ["help", "ligand=", "target=", "forceField=", "trajectories=", "steps=", "temperature="])
    for opt, arg in opts:
       if opt == '-h':

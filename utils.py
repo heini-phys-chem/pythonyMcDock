@@ -5,6 +5,15 @@ from openbabel import openbabel as ob
 
 
 def get_options(argv):
+    '''
+    Read in cmd line arguments
+    ligand: ligand geometry (sdf)
+    target: target geometry (sdf)
+    forceField: force field to be used
+    trajectories: how many trajectorues (MC runs) per conformer
+    steps: number of MC steps
+    temperature: temperature for acceptance test
+    '''
    opts, args = getopt.getopt(argv, "hl:t:f:j:s:u:", ["help", "ligand=", "target=", "forceField=", "trajectories=", "steps=", "temperature="])
    for opt, arg in opts:
       if opt == '-h':
@@ -26,6 +35,10 @@ def get_options(argv):
    return target, ligand, ff, trajectories, steps, temperature
 
 def readfile(f):
+    '''
+    input:   filename (sdf)
+    returns: openbabel mol object
+    '''
     mol = ob.OBMol()
     conv = ob.OBConversion()
     conv.SetInFormat("sdf")
@@ -35,6 +48,10 @@ def readfile(f):
     return mol
 
 def readfile_xyz(f):
+    '''
+    input:   filename (xyz)
+    returns: openbabel mol object
+    '''
     mol = ob.OBMol()
     conv = ob.OBConversion()
     conv.SetInFormat("xyz")
@@ -44,49 +61,30 @@ def readfile_xyz(f):
     return mol
 
 def writefile(mol, f):
+    '''
+    input:   mol object, filename (sdf)
+    returns: -
+    '''
     conv = ob.OBConversion()
     conv.SetOutFormat("sdf")
 
     conv.WriteFile(mol, f)
 
 def writefile_xyz(mol, f):
+    '''
+    input:   mol object, filename (xyz)
+    returns: -
+    '''
     conv = ob.OBConversion()
     conv.SetOutFormat("xyz")
 
     conv.WriteFile(mol, f)
 
-
-
-
-def too_close(mol, startid, endid):
-    com1 = np.array([0.0, 0.0, 0.0])
-    com2 = np.array([0.0, 0.0, 0.0])
-
-    atom = ob.OBAtom()
-
-    for i in range(1, startid-1):
-        atom = mol.GetAtom(i)
-        tmp = np.array([ atom.GetX(), atom.GetY(), atom.GetZ() ])
-        com1 += tmp
-
-    com1 /= (startid-1)
-
-    atom = ob.OBAtom()
-    for i in range(startid, endid):
-        atom = mol.GetAtom(i)
-        tmp = np.array([ atom.GetX(), atom.GetY(), atom.GetZ() ])
-        com2 += tmp
-
-    com2 /= (endid - startid)
-
-    dist = np.linalg.norm(com1-com2)
-
-    if dist > 1.0:
-        return True
-    else:
-        False
-
 def check_num_mols(mol):
+    '''
+    Splits mol object into seperate mol objects
+    returns True if only 2 mol objects exist
+    '''
     mols = mol.Separate()
 
     if len(mols) == 2:
@@ -96,6 +94,9 @@ def check_num_mols(mol):
 
 
 def get_com(mol):
+    '''
+    get center of mass
+    '''
     com = np.array([0.0, 0.0, 0.0])
     atom = ob.OBAtom()
 
@@ -109,19 +110,25 @@ def get_com(mol):
     return com
 
 def move_molecule(mol, move, startid=1, endid=-1):
+    '''
+    move ligand using move vector
+    '''
     atom =ob.OBAtom()
 
     if endid == -1:
         endid = mol.NumAtoms() + 1
 
     for i in range(startid, endid):
-    #for i in range(startid-1, endid):
         atom = mol.GetAtom(i)
         temp = np.array([atom.GetX(), atom.GetY(), atom.GetZ()])
         temp += move
         atom.SetVector(temp[0], temp[1], temp[2])
 
 def minimize_molecule(mol, force_field):
+    '''
+    optimizes molecule using a force field
+    returns optimized geometry and energy
+    '''
     ff = ob.OBForceField.FindForceField(force_field)
     ff.Setup(mol)
     ff.ConjugateGradients(2000)
@@ -156,6 +163,9 @@ def rotate(V, J, T):
     return rotated
 
 def rotate_molecule(mol, direction, theta, startid=1, endid=-1):
+    '''
+    rotate molecule using rot matrix, theta
+    '''
     if endid == -1:
         endid = mol.NumAtoms() + 1
 
@@ -177,6 +187,9 @@ def rotate_molecule(mol, direction, theta, startid=1, endid=-1):
         atom.SetVector(temp[0], temp[1], temp[2])
 
 def random_vector():
+    '''
+    generates random 3D vector [-1, 1]
+    '''
     rng = np.random.default_rng()
     vec = rng.random((3,))
     x = np.random.choice([-1., 1.], size=1)
@@ -189,15 +202,23 @@ def random_vector():
     return vec
 
 def uniform1():
+    '''
+    returns random number [0, 1] (scalar)
+    '''
     rng = np.random.default_rng()
     return rng.random()
 
 def random_angle():
+    '''
+    returns random angle for molecule rotation (scalar)
+    '''
     rng = np.random.default_rng()
     return 90./180.*np.pi * rng.random()
 
 def random_length():
-
+    '''
+    returns random length [0, 0.3] (scalar)
+    '''
     rng = np.random.default_rng()
     #return 2 * rng.random()
     ranInt = rng.integers(low=0, high=30, size=1)
@@ -209,6 +230,9 @@ def random_length():
         return ranInt / 100.
 
 def set_conformations(mol, force_field):
+    '''
+    Conformer search
+    '''
     ff = ob.OBForceField.FindForceField(force_field)
     ff.Setup(mol)
 
@@ -224,6 +248,13 @@ def set_conformations(mol, force_field):
     return mol
 
 def plus_equal_mols(target, ligand, numTot):
+    '''
+    mol += mol2 does not exist in the python wrapper from openbabel.
+    Therefore, this function adds the ligand to the target molecule (same mol object).
+    In the first step (# of atoms of target < # num atoms target+ligand) it is simply added
+    by creating the ligand atoms and bonds.
+    For every subsequent step, the ligand atom positions are simply updated
+    '''
     builder  = ob.OBBuilder()
     atom     = ob.OBAtom()
     atom2    = ob.OBAtom()

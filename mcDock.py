@@ -9,13 +9,15 @@ from openbabel import openbabel as ob
 
 from utils import *
 
+# Suppress RuntimeWarning from first Metropolis-Hastings MC criterian, accept
 warnings.filterwarnings("ignore")
 
 def main():
     print("\nUsing OpenBabel version: {}\n------------------------------\n".format(openbabel.__version__))
+    # Read cmd line arguments
     f_target, f_ligand, force_field, trajectories, steps, temperature = get_options(sys.argv[1:])
 
-
+    # Read in molecules
     target = readfile(f_target)
     ligand = readfile(f_ligand)
     print(" [+] Read molecules")
@@ -42,10 +44,10 @@ def main():
     e_low  = np.Inf
     eb_min = np.Inf
 
+    # Construct force field object
     ff = ob.OBForceField.FindForceField(force_field)
-#    conv = ob.OBConversion()
-#    conv.SetInAndOutFormats("xyz", "xyz")
-#    os.system("rm -f conformers.xyz")
+
+    # Perfomr conformer search
     print("Perfomring rotor search for ligand molecule      file: {}".format(f_ligand))
     ligand = set_conformations(ligand, force_field)
 
@@ -66,16 +68,17 @@ def main():
     print("MC temperature (tau) = {}".format(temperature))
 
 
-
-
+    # Start the MC simulation
     print("\nConformation:       Trajectory:         Acceptance rate:    Final Ebind:")
     print("---------------------------------------------------------------------------")
 
+    # Loop over conformers
     for c in range(1, numConfs+1):
         ligand.SetConformer(c)
 
         eb, ligand = minimize_molecule(ligand, force_field)
 
+        # For every conformer loop over number of trajectories
         for n in range(int(trajectories)):
             # translate molecule
             direction = random_vector()
@@ -104,7 +107,7 @@ def main():
             startid = mol_ligand.NumAtoms() - ligand.NumAtoms() + 1
             endid   = mol_ligand.NumAtoms() + 1
 
-            # MC simulation
+            # MC simulation for every trajectory
             for step in range(int(steps)):
                 move = random_vector()
                 move *= random_length()
@@ -133,8 +136,6 @@ def main():
 
 
             ec, mol_ligand = minimize_molecule(mol_ligand, force_field)
-            #ff.SetCoordinates(mol_ligand)
-            #ec = ff.Energy()
 
             e_bind = ec - (ea + eb)
 

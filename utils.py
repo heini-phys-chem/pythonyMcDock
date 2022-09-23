@@ -1,4 +1,4 @@
-import os, getopt
+import sys, os, getopt
 
 import numpy as np
 from openbabel import openbabel as ob
@@ -16,8 +16,14 @@ def get_options(argv):
    '''
    opts, args = getopt.getopt(argv, "hl:t:f:j:s:u:", ["help", "ligand=", "target=", "forceField=", "trajectories=", "steps=", "temperature="])
    for opt, arg in opts:
-      if opt == '-h':
-         print('test.py -l <ligand> -t <target>')
+      if opt == '--help':
+         print("How to run:")
+         print('test.py --ligand <ligand> --target <target> --forceField <force field> --trajectories # --steps # --temperature\n')
+         print(" -> ligand and target molecules as .sdf files")
+         print(" -> force fileds as implemented in openbabel (UFF, MMFF94, ...)")
+         print(" -> trajectories:\t# of trajectories")
+         print(" -> steps:\tnumber of MC steps")
+         print(" -> temperature for acceptance step\n")
          sys.exit()
       elif opt in ("-l", "--ligand"):
          ligand = arg

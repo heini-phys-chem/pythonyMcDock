@@ -48,7 +48,7 @@ def main():
     ff = ob.OBForceField.FindForceField(force_field)
 
     # Perfomr conformer search
-    print("Perfomring rotor search for ligand molecule      file: {}".format(f_ligand))
+    print(" Perfomring rotor search for ligand molecule      file: {}".format(f_ligand))
     ligand = set_conformations(ligand, force_field)
 
     numConfs = ligand.NumConformers()
@@ -61,16 +61,16 @@ def main():
         if eb < eb_min:
             eb_min = eb
 
-        print("Rotamere {}     E = {:.4f} kcal/mol".format(str(c), eb))
+        print(" Rotamere {}     E = {:.4f} kcal/mol".format(str(c), eb))
 
-    print("Lowers energy conformation E = {:.4f} kcal/mol".format(eb_min))
-    print("Running {} trajectories for {} steps".format(trajectories, steps))
-    print("MC temperature (tau) = {}".format(temperature))
+    print(" Lowers energy conformation E = {:.4f} kcal/mol".format(eb_min))
+    print(" Running {} trajectories for {} steps".format(trajectories, steps))
+    print(" MC temperature (tau) = {}".format(temperature))
 
 
     # Start the MC simulation
-    print("\nConformation:       Trajectory:         Acceptance rate:    Final Ebind:")
-    print("---------------------------------------------------------------------------")
+    print("\n Conformation:         Trajectory:         Acceptance rate:          Final Ebind:")
+    print(" --------------------------------------------------------------------------------")
 
     # Loop over conformers
     for c in range(1, numConfs+1):
@@ -140,7 +140,8 @@ def main():
             e_bind = ec - (ea + eb)
 
             acceptance_ratio = accept * 100.0 / (float(steps) + 1)
-            print("{} / {}\t\t\t{} / {}\t\t\t{:.2f}\t\t{:.2f}\tkcal/mol".format(c, numConfs, n+1, trajectories, acceptance_ratio, e_bind), end = '')
+            acceptance_ratio = round(acceptance_ratio, 2)
+            print(" {} / {}\t\t\t{} / {}\t\t\t{}\t%\t\t{:4.2f}\tkcal/mol".format(c, numConfs, str(n+1).zfill(2), trajectories, str(acceptance_ratio).zfill(2), e_bind), end = '')
 
 
             writefile_xyz(mol_ligand, "out_{}_{}.xyz".format(c, n))

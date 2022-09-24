@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys, os
+import random
 import numpy as np
 
 import openbabel
@@ -78,15 +79,19 @@ def minimize_molecule(mol, force_field):
 
     return e, mol
 
-def exchange_FG(mol, FG):
+def exchange_FG(mol_sub, FG, atom1Idx, atom2Idx):
+    mol_tmp = ob.OBMol()
+    mol_tmp = mol_sub
+    mol_tmp.SetCoordinates(mol_sub.GetCoordinates())
+
     atom_target = ob.OBMol()
     atom_FG     = ob.OBMol()
 
-    atom_target = mol.GetAtom(9)
+    atom_target = mol_tmp.GetAtom(atom2Idx)
     coords = np.array( [ atom_target.GetX(), atom_target.GetY(), atom_target.GetZ() ] )
 
-    mol.DeleteAtom(atom_target)
-    numAtoms = mol.NumAtoms()
+    mol_tmp.DeleteAtom(atom_target)
+    numAtoms = mol_tmp.NumAtoms()
 #    writefile(mol, "test.sdf")
 
     builder = ob.OBBuilder()
@@ -104,14 +109,36 @@ def exchange_FG(mol, FG):
 
     for i in range(FG.NumAtoms()):
         atom_FG = FG.GetAtom(i+1)
-        mol.AddAtom(atom_FG)
+        mol_tmp.AddAtom(atom_FG)
 
     for i in range(len(atom0)):
-        builder.Connect(mol, numAtoms+atom0[i], numAtoms+atom1[i], bond_order[i])
+        builder.Connect(mol_tmp, numAtoms+atom0[i], numAtoms+atom1[i], bond_order[i])
 
-    builder.Connect(mol, 1, numAtoms+1, 1)
+    builder.Connect(mol_tmp, atom1Idx, numAtoms+1, 1)
 
-    return mol
+    return mol_tmp
+
+def get_XH_bonds(mol):
+    atom1 = ob.OBAtom()
+    atom2 = ob.OBAtom()
+    bond  = ob.OBBond()
+    numAtoms = mol.NumAtoms()
+
+    CH_bonds = []
+
+    for i in range(numAtoms):
+        for j in range(numAtoms):
+            if i == j: continue
+
+            atom1 = mol.GetAtom(i+1)
+            atom2 = mol.GetAtom(j+1)
+
+            if atom1.GetBond(atom2) != None and atom2.GetAtomicNum() == 1:
+                #print("Bond Found between {} and {}".format(atom1.GetIdx(), atom2.GetIdx()))
+                CH_bonds.append( [atom1.GetIdx(), atom2.GetIdx()] )
+
+    return CH_bonds
+
 
 def main():
     filename    = sys.argv[1]
@@ -119,24 +146,32 @@ def main():
 
     FG = ["oh.sdf", "ch3.sdf", "nh2.sdf"]
 
-    mol_oh  = readfile(FG[0])
-    mol_ch3 = readfile(FG[1])
-    mol_nh2 = readfile(FG[2])
 
-    mol = readfile(filename)
-    com = get_com(mol)
+    for i in range(50):
+        mol = readfile(filename)
+        com = get_com(mol)
 
-    move_molecule(mol, com)
+        move_molecule(mol, com)
 
-    e, mol = minimize_molecule(mol, "UFF")
+        e, mol = minimize_molecule(mol, "UFF")
+        XH_bonds = get_XH_bonds(mol)
 
-    print("First energy: {:.2f}".format(e))
-    mol = exchange_FG(mol, mol_nh2)
 
-    e, mol = minimize_molecule(mol, "UFF")
-    print("FG energy: {:.2f}".format(e))
+        mol_FG = ob.OBMol()
+        mol_FG = readfile(random.choice(FG))
+        mol_sub = ob.OBMol()
+        mol_sub = mol
+        mol_sub.SetCoordinates(mol.GetCoordinates())
 
-    writefile(mol, "test.sdf")
+        atoms = random.choice(XH_bonds)
+
+        print("First energy: {:.2f}".format(e))
+        mol_sub = exchange_FG(mol_sub, mol_FG, atoms[0], atoms[1])
+
+        e, mol = minimize_molecule(mol_sub, "UFF")
+        print("FG energy: {:.2f}".format(e))
+
+        writefile(mol, "test_{}.sdf".format(i))
 
 
 if __name__ == '__main__':

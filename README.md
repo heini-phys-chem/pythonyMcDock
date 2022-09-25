@@ -17,5 +17,5 @@ conda install -c conda-forge openbabel
 ```
 ## Running mcDock.py
 ```
-./mcDock.py --ligand small_conformer.sdf --target glucosepane.sdf  --forceField UFF --trajectories 15 --steps 200 --temperature 0.3
+./mcDock.py --ligand small_conformer.sdf --target glucosepane.sdf  --forceField UFF --trajectories 15 --steps 200 --temperature 0.3 --mutations 10
 ```

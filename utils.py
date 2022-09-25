@@ -306,3 +306,64 @@ def plus_equal_mols(target, ligand, numTot):
     return mol_new
 
 
+def exchange_FG(mol_sub, FG, atom1Idx, atom2Idx):
+   mol_tmp = ob.OBMol()
+   mol_tmp = mol_sub
+   mol_tmp.SetCoordinates(mol_sub.GetCoordinates())
+
+   atom_target = ob.OBMol()
+   atom_FG     = ob.OBMol()
+
+   atom_target = mol_tmp.GetAtom(atom2Idx)
+   coords = np.array( [ atom_target.GetX(), atom_target.GetY(), atom_target.GetZ() ] )
+
+   mol_tmp.DeleteAtom(atom_target)
+   numAtoms = mol_tmp.NumAtoms()
+   #writefile(mol, "test.sdf")
+
+   builder = ob.OBBuilder()
+
+   FG_bonds = ob.OBMolBondIter(FG)
+
+   atom0      = []
+   atom1      = []
+   bond_order = []
+
+   for bond in FG_bonds:
+       atom0.append(bond.GetBeginAtomIdx())
+       atom1.append(bond.GetEndAtomIdx())
+       bond_order.append(bond.GetBondOrder())
+
+   for i in range(FG.NumAtoms()):
+       atom_FG = FG.GetAtom(i+1)
+       mol_tmp.AddAtom(atom_FG)
+
+   for i in range(len(atom0)):
+       builder.Connect(mol_tmp, numAtoms+atom0[i], numAtoms+atom1[i], bond_order[i])
+
+   builder.Connect(mol_tmp, atom1Idx, numAtoms+1, 1)
+
+   return mol_tmp
+
+def get_XH_bonds(mol):
+    atom1 = ob.OBAtom()
+    atom2 = ob.OBAtom()
+    bond  = ob.OBBond()
+    numAtoms = mol.NumAtoms()
+
+    CH_bonds = []
+
+    for i in range(numAtoms):
+        for j in range(numAtoms):
+            if i == j: continue
+
+            atom1 = mol.GetAtom(i+1)
+            atom2 = mol.GetAtom(j+1)
+
+            if atom1.GetBond(atom2) != None and atom2.GetAtomicNum() == 1:
+                #print("Bond Found between {} and {}".format(atom1.GetIdx(), atom2.GetIdx()))
+                CH_bonds.append( [atom1.GetIdx(), atom2.GetIdx()] )
+
+    return CH_bonds
+
+

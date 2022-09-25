@@ -14,7 +14,7 @@ def get_options(argv):
    steps: number of MC steps
    temperature: temperature for acceptance test
    '''
-   opts, args = getopt.getopt(argv, "hl:t:f:j:s:u:", ["help", "ligand=", "target=", "forceField=", "trajectories=", "steps=", "temperature="])
+   opts, args = getopt.getopt(argv, "hl:t:f:j:s:u:m:", ["help", "ligand=", "target=", "forceField=", "trajectories=", "steps=", "temperature=", "mutations="])
    for opt, arg in opts:
       if opt == '--help':
          print("How to run:")
@@ -24,6 +24,7 @@ def get_options(argv):
          print(" -> trajectories:\t# of trajectories")
          print(" -> steps:\tnumber of MC steps")
          print(" -> temperature for acceptance step\n")
+         print(" -> mutations: # of mutations\n")
          sys.exit()
       elif opt in ("-l", "--ligand"):
          ligand = arg
@@ -37,8 +38,10 @@ def get_options(argv):
          steps = arg
       elif opt in ("-u", "--temperature"):
          temperature = arg
+      elif opt in ("-m", "--mutations"):
+          mutations = arg
 
-   return target, ligand, ff, trajectories, steps, temperature
+   return target, ligand, ff, trajectories, steps, temperature, mutations
 
 def readfile(f):
     '''

@@ -17,10 +17,10 @@ os.system("rm -f out.xyz min.xyz")
 def main():
     print("\nUsing OpenBabel version: {}\n------------------------------\n".format(openbabel.__version__))
     # Read cmd line arguments
-    f_target, f_ligand, force_field, trajectories, steps, temperature = get_options(sys.argv[1:])
+    f_target, f_ligand, force_field, trajectories, steps, temperature, mutations = get_options(sys.argv[1:])
 
     FG = ["oh.sdf", "ch3.sdf", "nh2.sdf"]
-    for k in range(5):
+    for k in range(int(mutations)):
         # Read in molecules
         target = readfile(f_target)
         ligand = readfile(f_ligand)

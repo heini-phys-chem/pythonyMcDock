@@ -69,6 +69,20 @@ def readfile_xyz(f):
 
     return mol
 
+def readfile_pdb(f):
+    '''
+    input:   filename (xyz)
+    returns: openbabel mol object
+    '''
+    mol = ob.OBMol()
+    conv = ob.OBConversion()
+    conv.SetInFormat("pdb")
+
+    conv.ReadFile(mol, f)
+
+    return mol
+
+
 def writefile(mol, f):
     '''
     input:   mol object, filename (sdf)
@@ -264,6 +278,8 @@ def plus_equal_mols(target, ligand, numTot):
     by creating the ligand atoms and bonds.
     For every subsequent step, the ligand atom positions are simply updated
     '''
+    #ligand = ob.OBMol()
+    #ligand = readfile_xyz("Ru_guest_for_PA.xyz")
     builder  = ob.OBBuilder()
     atom     = ob.OBAtom()
     atom2    = ob.OBAtom()
@@ -290,6 +306,22 @@ def plus_equal_mols(target, ligand, numTot):
             mol_new.AddAtom(atom)
 
         for i in range(len(atom0)):
+            #if atom0[i] == 1 and atom1[i] == 4: continue
+            #if atom0[i] == 1 and atom1[i] == 3: continue
+            #if atom0[i] == 2 and atom1[i] == 1: continue
+            #if atom0[i] == 3 and atom1[i] == 11: continue
+            #if atom0[i] == 4 and atom1[i] == 13: continue
+            #if atom0[i] == 6 and atom1[i] == 1: continue
+            #if atom0[i] == 5 and atom1[i] == 14: continue
+            #if atom0[i] == 8 and atom1[i] == 2: continue
+            #if atom0[i] == 10 and atom1[i] == 22: continue
+            #if atom0[i] == 12 and atom1[i] == 24: continue
+            #if atom0[i] == 16 and atom1[i] == 28: continue
+            #if atom0[i] == 20 and atom1[i] == 8: continue
+            #if atom0[i] == 27 and atom1[i] == 35: continue
+            #if atom0[i] == 29 and atom1[i] == 36: continue
+            #if atom0[i] == 29 and atom1[i] == 36: continue
+            #print(i, atom0[i], atom1[i])
             builder.Connect(mol_new, numAtoms+atom0[i], numAtoms+atom1[i], bond_order[i])
 
     else:

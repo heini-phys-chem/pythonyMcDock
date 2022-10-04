@@ -100,7 +100,7 @@ def main():
             direction = random_vector()
             com = get_com(ligand)
             temp = direction * 4.0 - com
-            move_molecule(ligand, temp)
+            #move_molecule(ligand, temp)
             rot = random_vector()
             theta = random_angle()# * np.pi
             rotate_molecule(ligand, rot, theta)
@@ -127,7 +127,7 @@ def main():
             for step in range(int(steps)):
                 move = random_vector()
                 move *= random_length()
-                move_molecule(mol_ligand, move, startid=startid, endid=endid)
+                #move_molecule(mol_ligand, move, startid=startid, endid=endid)
 
                 rot   = random_vector()
                 theta = random_angle()
